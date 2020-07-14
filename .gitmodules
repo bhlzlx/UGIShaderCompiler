@@ -1,0 +1,24 @@
+[submodule "thirdparty/glslang"]
+	path = thirdparty/glslang
+	url = https://github.com/KhronosGroup/glslang.git
+[submodule "thirdparty/spirv-cross"]
+	path = thirdparty/spirv-cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross.git
+[submodule "thirdparty/CMCore"]
+	path = thirdparty/CMCore
+	url = https://github.com/bhlzlx/CMCore
+[submodule "thirdparty/CMUtil"]
+	path = thirdparty/CMUtil
+	url = https://github.com/bhlzlx/CMUtil
+[submodule "thirdparty/CMPlatform"]
+	path = thirdparty/CMPlatform
+	url = https://github.com/bhlzlx/CMPlatform
+[submodule "thirdparty/CMAssetsManage"]
+	path = thirdparty/CMAssetsManage
+	url = https://github.com/bhlzlx/CMAssetsManage
+[submodule "thirdparty/CMCMakeModule"]
+	path = thirdparty/CMCMakeModule
+	url = https://github.com/bhlzlx/CMCMakeModule
+[submodule "thirdparty/MathGeoLib"]
+	path = thirdparty/MathGeoLib
+	url = https://github.com/juj/MathGeoLib
