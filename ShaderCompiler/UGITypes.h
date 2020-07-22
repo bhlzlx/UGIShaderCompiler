@@ -17,128 +17,6 @@ namespace ugi {
     static const uint32_t MaxMipLevelCount          = 12;
     static const uint32_t MaxSubpassCount           = 8;
 
-    template< class DEST, class SOURCE >
-    struct IntegerComposer {
-        union {
-            struct {
-                SOURCE a;
-                SOURCE b;
-            };
-            DEST val;
-        };
-        IntegerComposer(SOURCE _a, SOURCE _b)
-            : a(_a)
-            , b(_b)
-        {
-        }
-        IntegerComposer& operator=(const IntegerComposer& _val) {
-            val = _val.val;
-            return *this;
-        }
-        bool operator == (const IntegerComposer& _val) const {
-            return val == _val.val;;
-        }
-        bool operator < (const IntegerComposer& _val) const {
-            return val < _val.val;
-        }
-        static_assert(sizeof(DEST) == sizeof(SOURCE) * 2, "!");
-    };
-
-    template < class T >
-    struct Point {
-        T x;
-        T y;
-    };
-
-    template < class T >
-    struct Size {
-        T width;
-        T height;
-    };
-
-    template < class T >
-    struct Size3D {
-        T width;
-        T height;
-        T depth;
-    };
-
-    template< class T >
-    struct Rect {
-        Point<T> origin;
-        Size<T> size;
-    };
-
-    template< class T >
-    struct Offset2D {
-        T x, y;
-    };
-
-    template< class T >
-    struct Offset3D {
-        T x, y, z;
-    };
-
-    struct Viewport {
-        float x, y;
-        float width, height;
-        float zNear, zFar;
-    };
-
-    typedef Rect<int> Scissor;
-
-    // 仅能表达某一级mipmap
-    struct TextureRegion {
-        uint32_t mipLevel; // mip map level
-        // for texture 2d, baseLayer must be 0
-        // for texture 2d array, baseLayer is the index
-        // for texture cube, baseLayer is from 0 ~ 5
-        // for texture cube array, baseLayer is ( index * 6 + face )
-        // for texture 3d, baseLayer is ( depth the destination layer )
-        // for texture 3d array, baseLayer is ( {texture depth} * index + depth of the destination layer )
-        uint32_t baseLayer;
-        // for texture 2d, offset.z must be 0
-        Offset3D<uint32_t> offset;
-        // for texture 2d, size.depth must be 1
-        Size3D<uint32_t> size;
-    };
-
-    struct TextureSubResource {
-        uint32_t            baseMipLevel;
-        uint32_t            mipLevelCount;
-        uint32_t            baseLayer;
-        uint32_t            layerCount;
-        Offset3D<uint32_t>  offset;
-        Size3D<uint32_t>    size;
-    };
-
-    struct BufferSubResource {
-        uint32_t            offset;
-        uint32_t            size;
-    };
-
-    enum GRAPHICS_API_TYPE {
-        VULKAN          = 0,
-        DX12            = 1,
-        METAL           = 2
-    };
-
-    enum GRAPHICS_DEVICE_TYPE {
-        INTEGATED       = 0,
-        DISCRETE        = 1,
-        SOFTWARE        = 2,
-        OTHER           = 3
-    };
-
-    struct DeviceDescriptor {
-        GRAPHICS_API_TYPE           apiType;
-        GRAPHICS_DEVICE_TYPE        deviceType;
-        uint8_t                     debugLayer;
-        uint8_t                     graphicsQueueCount;        // for vulkan API, queue count must be specified when creating the device
-        uint8_t                     transferQueueCount;        // 
-        void*                       wnd;                    // surface window handle
-    };
-
     enum class ShaderModuleType : uint8_t {
         VertexShader = 0,
         TessellationControlShader,
@@ -389,34 +267,28 @@ namespace ugi {
         }
     };
 
-    struct VertexAttribueDescription {
-        alignas(4) char        name[MaxNameLength];
-        alignas(4) uint32_t    bufferIndex;
-        alignas(4) uint32_t    offset;
-        alignas(4) VertexType  type;
-        VertexAttribueDescription() :
-            bufferIndex(0),
-            offset(0),
-            type( VertexType::Float) {
-        }
-    };
-
+	// 一个属性对应一个buffer,所以其stride不可能过大，这里255已经很大了
     struct VertexBufferDescription {
-        alignas(4) uint32_t stride;
-        alignas(4) uint32_t instanceMode;
-        VertexBufferDescription() :
-            stride(0),
-            instanceMode(0)
-        {
+        alignas(4) char			name[MaxNameLength];
+        alignas(1) VertexType	type;
+        alignas(1) uint8_t      offset;
+		alignas(1) uint8_t		stride;
+		alignas(1) uint8_t		instanceMode;
+        VertexBufferDescription()
+			: name {}
+			, type(VertexType::Float)
+			, instanceMode(0)
+		{
         }
     };
 
     struct VertexLayout {
-        alignas(4) uint32_t         attributeCount;
-        VertexAttribueDescription   attributes[MaxVertexAttribute];
-        uint32_t                    bufferCount;
-        VertexBufferDescription     buffers[MaxVertexBufferBinding];
-        VertexLayout() : attributeCount(0), bufferCount(0) {
+        alignas(4) uint32_t                 bufferCount;
+        alignas(4) VertexBufferDescription  buffers[MaxVertexAttribute];
+        VertexLayout() 
+            : bufferCount(0) 
+            , buffers {}
+        {
         }
     };
 
@@ -596,10 +468,10 @@ namespace ugi {
     struct PipelineDescription {
         // == 生成好的信息
         alignas(8) ShaderDescription                shaders[(uint8_t)ShaderModuleType::ShaderTypeCount];
-        alignas(4) PipelineConstants                pipelineConstants[(uint8_t)ShaderModuleType::ShaderTypeCount];
         alignas(4) uint32_t                         argumentCount = 0;
         alignas(4) ArgumentInfo                     argumentLayouts[MaxArgumentCount];
         alignas(4) VertexLayout                     vertexLayout;
+        alignas(4) PipelineConstants                pipelineConstants[(uint8_t)ShaderModuleType::ShaderTypeCount];
         // ==
         alignas(4) PipelineState                    renderState;
         alignas(4) uint32_t                         tessPatchCount = 0;
@@ -608,6 +480,5 @@ namespace ugi {
     };
 
     constexpr uint32_t PipelineDescriptionSize = sizeof(PipelineDescription);
-
 }
 

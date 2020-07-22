@@ -195,6 +195,7 @@ ugi::VertexType getVertexType(const spirv_cross::SPIRType& _type) {
     case spirv_cross::SPIRType::BaseType::Int: {
         ugi::VertexType types[] = {
             ugi::VertexType::Uint,
+            ugi::VertexType::Uint,
             ugi::VertexType::Uint2,
             ugi::VertexType::Uint3,
             ugi::VertexType::Uint4,
@@ -203,6 +204,7 @@ ugi::VertexType getVertexType(const spirv_cross::SPIRType& _type) {
     }
     case spirv_cross::SPIRType::BaseType::UInt: {
         ugi::VertexType types[] = {
+            ugi::VertexType::Uint,
             ugi::VertexType::Uint,
             ugi::VertexType::Uint2,
             ugi::VertexType::Uint3,

@@ -84,9 +84,9 @@ bool ProcessSpirVForStage( const char* shaderText, EShLanguage stage, ugi::Pipel
         for (auto& stageInput : spvResource.stage_inputs) {
             auto location = spvCompiler.get_decoration(stageInput.id, spv::Decoration::DecorationLocation);
             auto type = spvCompiler.get_type(stageInput.base_type_id);
-            strcpy(desc.vertexLayout.attributes[location].name, stageInput.name.c_str());
-            desc.vertexLayout.attributes[location].type = getVertexType(type);
-            ++desc.vertexLayout.attributeCount;
+            strcpy(desc.vertexLayout.buffers[location].name, stageInput.name.c_str());
+            desc.vertexLayout.buffers[location].type = getVertexType(type);
+            ++desc.vertexLayout.bufferCount;
         }
     }
     // m_vecStageOutput.clear();
@@ -328,52 +328,24 @@ int main( int argc, char** argv ) {
     // 处理vertex layout
     ///> vertex layout information
 
-    auto vertexLayout = js["vertexLayout"];
-    if(vertexLayout.is_null()) {
-        /// 没有顶点信息，生成默认布局
-        uint32_t attrOffset = 0;
-        for( uint32_t i = 0; i<pipelineDescription.vertexLayout.attributeCount; ++i) {
-            pipelineDescription.vertexLayout.attributes[i].offset = attrOffset;
-            attrOffset+= getVertexSize(pipelineDescription.vertexLayout.attributes[i].type);
-            pipelineDescription.vertexLayout.attributes[i].bufferIndex = 0;
-        }
-        // 生成默认配置，只有一个buffer的情况
-        pipelineDescription.vertexLayout.bufferCount = 1;
-        pipelineDescription.vertexLayout.buffers[0].stride = attrOffset;
-        pipelineDescription.vertexLayout.buffers[0].instanceMode = 0;
-    } else {
-        if(!vertexLayout["buffers"].is_array()) {
-            printf("buffers segment fault!\n");
-            return -1;
-        } else {
-            auto buffers = vertexLayout["buffers"];
-            pipelineDescription.vertexLayout.bufferCount = 0;
-            for( auto buffer : buffers ) {
-                if( !buffer["stride"].is_number_integer() || !buffer["instance"].is_number_integer() ) {
-                    printf("buffer attribute is fault!\n");
-                    return -1;
-                }
-                pipelineDescription.vertexLayout.buffers[pipelineDescription.vertexLayout.bufferCount].instanceMode = buffer["instance"];
-                pipelineDescription.vertexLayout.buffers[pipelineDescription.vertexLayout.bufferCount].stride = buffer["stride"];
-                ++pipelineDescription.vertexLayout.bufferCount;
+    uint32_t attrOffset = 0;
+    for( uint32_t i = 0; i<pipelineDescription.vertexLayout.bufferCount; ++i) {
+        pipelineDescription.vertexLayout.buffers[i].stride = getVertexSize(pipelineDescription.vertexLayout.buffers[i].type);
+        pipelineDescription.vertexLayout.buffers[i].offset = 0;
+        pipelineDescription.vertexLayout.buffers[i].instanceMode = 0;
+    }
+
+    auto combindVertexNode = js["combineVertex"];
+    if( combindVertexNode.is_boolean()) {
+        bool r = combindVertexNode;
+        if(r) {
+            uint32_t stride = 0;
+            for( size_t i = 0; i<pipelineDescription.vertexLayout.bufferCount; ++i) {
+                pipelineDescription.vertexLayout.buffers[i].offset = stride;
+                stride += pipelineDescription.vertexLayout.buffers[i].stride;
             }
-        }
-        if(!vertexLayout["attributes"].is_array()) {
-            printf("vertex attributes fault!\n");
-            return -1;
-        } else {
-            auto attributes = vertexLayout["attributes"];
-            size_t i = 0;
-            pipelineDescription.vertexLayout.attributeCount = 0;
-            for( auto attr : attributes ) {
-                if( !attr["buffer"].is_number_integer() || !attr["offset"].is_number_integer() || !attr["type"].is_string() ) {
-                    printf("buffer attribute is fault!\n");
-                    return -1;
-                }
-                pipelineDescription.vertexLayout.attributes[pipelineDescription.vertexLayout.attributeCount].bufferIndex = attr["buffer"];
-                pipelineDescription.vertexLayout.attributes[pipelineDescription.vertexLayout.attributeCount].offset = attr["offset"];
-                pipelineDescription.vertexLayout.attributes[pipelineDescription.vertexLayout.attributeCount].type = VertexTypeMapping[attr["type"]];
-                ++pipelineDescription.vertexLayout.attributeCount;
+            for( size_t i = 0; i<pipelineDescription.vertexLayout.bufferCount; ++i) {
+                pipelineDescription.vertexLayout.buffers[i].stride = stride;
             }
         }
     }
